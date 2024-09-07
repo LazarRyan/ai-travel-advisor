@@ -1,24 +1,14 @@
 import streamlit as st
 import openai
-import os
 
-# Try to get the API key from environment variable first (for Streamlit Cloud)
-openai_api_key = os.environ.get("OPENAI_API_KEY")
-
-# If not found in environment, try to get it from Streamlit secrets (for local development)
-if not openai_api_key:
-    try:
-        openai_api_key = st.secrets["openai"]["OPENAI_API_KEY"]
-    except KeyError:
-        st.error("OPENAI_API_KEY not found in Streamlit secrets or environment variables. Please set it up properly.")
-        openai_api_key = None
-
-openai.api_key = openai_api_key
+# Try to get the API key from Streamlit secrets
+try:
+    openai.api_key = st.secrets["OPENAI_API_KEY"]
+except KeyError:
+    st.error("OPENAI_API_KEY not found in Streamlit secrets. Please set it up in the Streamlit Cloud dashboard.")
+    st.stop()
 
 def get_ai_tourism_advice(destination):
-    if not openai.api_key:
-        return "OpenAI API key is not set. Unable to fetch tourism advice."
-    
     try:
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo",
@@ -34,13 +24,9 @@ def get_ai_tourism_advice(destination):
 
 def main():
     st.title("🏛️ AI Tourism Advice")
-    
-    if not openai.api_key:
-        st.warning("OpenAI API key is not set. The app will not be able to provide tourism advice.")
-        st.stop()
-    
+
     destination = st.text_input("Enter a destination:", "")
-    
+
     if st.button("Get Tourism Advice"):
         if destination:
             with st.spinner("Fetching tourism advice..."):
